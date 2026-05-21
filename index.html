@@ -1,1 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="St. Catherine of Alexandria OCIA Ministry App — Riverside, CA">
+<title>OCIA · St. Catherine of Alexandria</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDFZiTX2iJnIypcUR5inI4R90-G6j02wD0",
+    authDomain: "stcatherineocia-b0334.firebaseapp.com",
+    projectId: "stcatherineocia-b0334",
+    storageBucket: "stcatherineocia-b0334.firebasestorage.app",
+    messagingSenderId: "842116823519",
+    appId: "1:842116823519:web:a632f38c0b8d81a3c82c6a"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  window.db = db;
+  window.fbFns = { collection, addDoc, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp };
+  window.firebaseReady = true;
+  document.dispatchEvent(new Event('firebaseReady'));
+</script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bur:#6B1A2A;--bur2:#9E2B42;--bur3:#4A1020;--bur4:#2C0810;
+  --gold:#C49A2A;--gold2:#F5E6B8;--gold3:#8B6914;--gold4:#EDD98A;
+  --cream:#FBF8F2;--cream2:#EDE5D4;
+  --text:#1A0A0E;--text2:#4A3038;--text3:#7A6068;
+  --white:#FFFFFF;
+  --font-display:'Cormorant Garamond',Georgia,serif;
+  --font-body:'Inter',sans-serif;
+  --r-sm:8px;--r-md:12px;--r-lg:16px;--r-xl:24px;
+}
+body{font-family:var(--font-body);background:var(--cream);color:var(--text);min-height:100vh;}
+.dark{background:#0D0408 !important;}
+.dark body{background:#0D0408;}
+.dark .login-card,.dark .section,.dark .card,.dark .modal,.dark .notif-drop,.dark .admin-block,.dark .quote-strip{background:#1A0A0E !important;border-color:rgba(196,154,42,0.2) !important;}
+.dark .card-title,.dark .sec-title,.dark .modal-title{color:var(--gold2) !important;}
+.dark .card-body{color:rgba(245,230,184,0.65) !important;}
+.dark .nav{background:#1A0A0E;}
+.dark .nav-tab{color:var(--gold2);}
+.dark .nav-tab.on{background:#0D0408;}
+.dark .code-row,.dark .pend-item{background:#0D0408 !important;}
+.dark input,.dark textarea{background:#1A0A0E !important;color:var(--gold2) !important;border-color:rgba(196,154,42,0.25) !important;}
+.dark .role-btn{background:#1A0A0E;border-color:rgba(196,154,42,0.2);color:var(--gold2);}
+.dark .cream2{background:#1A0A0E;}
+.dark .sec-hero{background:#0D0408 !important;}
+
+#splash{display:flex;flex-direction:column;min-height:100vh;max-width:520px;margin:0 auto;}
+.church-hero{height:220px;background:var(--bur4);overflow:hidden;position:relative;}
+.fade-overlay{position:absolute;bottom:0;left:0;right:0;height:100px;background:linear-gradient(transparent,var(--bur4));}
+.hero-content{background:var(--bur4);padding:14px 20px 18px;text-align:center;border-bottom:2px solid var(--gold);}
+.diocese-label{font-size:10px;letter-spacing:0.16em;color:var(--gold4);text-transform:uppercase;font-weight:500;margin-bottom:6px;}
+.logo-ring{width:64px;height:64px;border-radius:50%;border:2px solid var(--gold);background:rgba(196,154,42,0.1);display:flex;align-items:center;justify-content:center;margin:0 auto 8px;}
+.logo-inner{width:50px;height:50px;border-radius:50%;background:rgba(196,154,42,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;}
+.logo-ocia{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--gold2);letter-spacing:0.08em;}
+.logo-cross{font-size:10px;color:var(--gold);}
+.parish-name{font-family:var(--font-display);font-size:20px;font-weight:500;color:#FBF5E0;line-height:1.2;margin-bottom:2px;}
+.ocia-subtitle{font-size:11px;color:rgba(245,230,184,0.7);letter-spacing:0.04em;margin-bottom:2px;}
+.parish-address{font-size:10px;color:rgba(245,230,184,0.45);margin-bottom:6px;}
+.parish-quote{font-family:var(--font-display);font-size:13px;font-style:italic;color:var(--gold4);}
+
+.login-card{background:var(--cream);padding:18px;flex:1;}
+.login-heading{font-family:var(--font-display);font-size:18px;font-weight:500;color:var(--bur);text-align:center;margin-bottom:2px;}
+.login-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:14px;}
+.field-label{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:0.04em;margin-bottom:4px;display:block;text-transform:uppercase;}
+input[type=text],input[type=password]{width:100%;padding:10px 13px;border-radius:var(--r-md);border:1px solid rgba(107,26,42,0.2);background:var(--white);color:var(--text);font-family:var(--font-body);font-size:14px;outline:none;transition:border 0.2s;margin-bottom:10px;}
+input:focus{border-color:var(--bur2);box-shadow:0 0 0 3px rgba(107,26,42,0.08);}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.role-btn{padding:10px 8px;border-radius:var(--r-md);border:1px solid rgba(107,26,42,0.2);background:var(--white);color:var(--text2);cursor:pointer;font-size:12px;font-family:var(--font-body);display:flex;flex-direction:column;align-items:center;gap:4px;transition:all 0.18s;}
+.role-btn i{font-size:20px;color:var(--bur2);}
+.role-btn.sel{background:var(--bur);color:var(--gold2);border-color:var(--bur);}
+.role-btn.sel i{color:var(--gold2);}
+.btn-enter{width:100%;padding:12px;background:var(--bur);color:var(--gold2);border:none;border-radius:var(--r-md);font-family:var(--font-display);font-size:16px;font-weight:500;letter-spacing:0.04em;cursor:pointer;margin-top:2px;transition:background 0.18s;}
+.btn-enter:hover{background:var(--bur2);}
+.msg-err{font-size:12px;color:#A32D2D;text-align:center;padding:8px;display:none;}
+.msg-pend{font-size:12px;color:var(--gold3);text-align:center;padding:10px 14px;background:var(--gold2);border-radius:var(--r-md);display:none;margin-top:6px;}
+.hint{font-size:11px;color:var(--text3);text-align:center;margin-top:8px;}
+.asl-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:5px;display:flex;align-items:center;justify-content:center;gap:4px;}
+.db-status{font-size:11px;text-align:center;margin-top:6px;padding:4px 8px;border-radius:var(--r-md);}
+.db-online{background:#EAF3DE;color:#3B6D11;}
+.db-offline{background:#FCEBEB;color:#791F1F;}
+
+#mainApp{display:none;flex-direction:column;max-width:520px;margin:0 auto;min-height:100vh;}
+.topbar{background:var(--bur);padding:10px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:50;}
+.tb-left{display:flex;align-items:center;gap:10px;}
+.tb-logo{width:32px;height:32px;border-radius:50%;border:1px solid var(--gold);background:rgba(196,154,42,0.15);display:flex;align-items:center;justify-content:center;}
+.tb-logo i{font-size:16px;color:var(--gold2);}
+.tb-name{font-family:var(--font-display);font-size:14px;font-weight:500;color:#FBF5E0;line-height:1.2;}
+.tb-role{font-size:9px;color:rgba(245,230,184,0.6);text-transform:uppercase;letter-spacing:0.08em;}
+.tb-right{display:flex;gap:8px;align-items:center;}
+.tb-btn{background:none;border:none;cursor:pointer;color:rgba(245,230,184,0.7);font-size:18px;padding:3px;transition:color 0.15s;}
+.tb-btn:hover{color:var(--gold2);}
+
+.easter-strip{background:var(--bur3);padding:6px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(196,154,42,0.25);}
+.es-label{font-size:11px;color:var(--gold4);display:flex;align-items:center;gap:5px;}
+.es-count{font-family:var(--font-display);font-size:14px;font-weight:500;color:var(--gold);}
+
+.notif-drop{background:var(--white);border:1px solid rgba(196,154,42,0.25);border-radius:var(--r-lg);margin:8px 12px 0;padding:12px;display:none;}
+.notif-drop.show{display:block;}
+.notif-title{font-size:11px;font-weight:500;color:var(--bur);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;}
+.notif-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid rgba(196,154,42,0.1);}
+.notif-item:last-child{border-bottom:none;}
+.n-dot{width:6px;height:6px;border-radius:50%;background:var(--bur);flex-shrink:0;margin-top:5px;}
+.n-text{font-size:13px;color:var(--text);}
+.n-time{font-size:11px;color:var(--text3);}
+
+.nav{display:flex;background:var(--cream2);border-bottom:1px solid rgba(196,154,42,0.3);overflow-x:auto;-webkit-overflow-scrolling:touch;position:sticky;top:57px;z-index:40;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-tab{flex:1;min-width:54px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px 6px;cursor:pointer;font-size:10px;color:var(--bur);font-weight:500;border-bottom:3px solid transparent;white-space:nowrap;letter-spacing:0.02em;transition:all 0.15s;}
+.nav-tab i{font-size:17px;}
+.nav-tab.on{border-bottom-color:var(--bur);background:var(--cream);}
+.nav-tab:hover:not(.on){background:rgba(107,26,42,0.05);}
+
+.section{display:none;flex-direction:column;gap:10px;padding:12px;background:var(--cream);min-height:calc(100vh - 120px);}
+.section.on{display:flex;}
+.sec-hero{border-radius:var(--r-lg);overflow:hidden;border:1px solid rgba(196,154,42,0.25);background:var(--bur3);height:72px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sec-hero-title{font-family:var(--font-display);font-size:15px;font-weight:500;color:var(--gold2);text-align:center;}
+.sec-hero-sub{font-size:10px;color:rgba(245,230,184,0.5);margin-top:2px;text-align:center;}
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;}
+.sec-title{font-family:var(--font-display);font-size:17px;font-weight:500;color:var(--bur);}
+.btn-add{display:flex;align-items:center;gap:4px;font-size:12px;padding:5px 11px;border-radius:var(--r-md);border:1px solid var(--bur);background:transparent;color:var(--bur);cursor:pointer;font-family:var(--font-body);}
+.btn-add:hover{background:rgba(107,26,42,0.06);}
+
+.card{background:var(--white);border-radius:var(--r-lg);border:1px solid rgba(196,154,42,0.25);padding:12px 14px;margin-bottom:8px;}
+.tag{display:inline-block;font-size:10px;padding:2px 8px;border-radius:20px;font-weight:500;margin-bottom:5px;letter-spacing:0.03em;}
+.tag-ann{background:var(--gold2);color:var(--gold3);}
+.tag-pry{background:#F5E8EC;color:var(--bur);}
+.tag-asl{background:#E1F5EE;color:#085041;}
+.tag-feast{background:var(--gold2);color:var(--gold3);}
+.tag-asgn{background:#FAEEDA;color:#633806;}
+.card-title{font-family:var(--font-display);font-size:15px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.3;}
+.card-body{font-size:13px;color:var(--text2);line-height:1.65;}
+.card-meta{font-size:11px;color:var(--text3);margin-top:7px;display:flex;align-items:center;gap:5px;}
+.prayer-accent{border-left:3px solid var(--bur2);border-radius:0 var(--r-lg) var(--r-lg) 0;}
+.btn-pray{font-size:12px;padding:4px 11px;border-radius:20px;border:1px solid var(--bur2);color:var(--bur);background:transparent;cursor:pointer;display:flex;align-items:center;gap:4px;margin-top:8px;font-family:var(--font-body);}
+.btn-pray:hover,.btn-pray.prayed{background:#F5E8EC;}
+
+.event-row{display:flex;gap:10px;align-items:flex-start;}
+.event-date{min-width:44px;background:var(--bur);border-radius:var(--r-md);display:flex;flex-direction:column;align-items:center;padding:5px 4px;flex-shrink:0;}
+.event-month{font-size:9px;color:var(--gold2);text-transform:uppercase;letter-spacing:0.06em;font-weight:500;}
+.event-day{font-family:var(--font-display);font-size:22px;font-weight:500;color:#FBF5E0;line-height:1.1;}
+.event-time{font-size:11px;color:var(--text3);margin-top:3px;display:flex;align-items:center;gap:3px;}
+
+.res-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(196,154,42,0.15);}
+.res-row:last-child{border-bottom:none;}
+.res-icon{width:34px;height:34px;border-radius:var(--r-md);background:var(--gold2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.res-icon i{font-size:17px;color:var(--gold3);}
+.res-asl .res-icon{background:#E1F5EE;}
+.res-asl .res-icon i{color:#085041;}
+.btn-view{font-size:11px;padding:4px 9px;border-radius:var(--r-md);border:1px solid rgba(107,26,42,0.2);background:transparent;color:var(--text2);cursor:pointer;flex-shrink:0;font-family:var(--font-body);}
+.font-row{display:flex;align-items:center;gap:8px;padding:5px 0;}
+.font-lbl{font-size:12px;color:var(--text3);}
+.font-sz-btn{padding:3px 10px;border-radius:var(--r-md);border:1px solid rgba(107,26,42,0.2);background:transparent;cursor:pointer;font-family:var(--font-body);color:var(--text);}
+.font-sz-btn.on{background:var(--bur);color:var(--gold2);border-color:var(--bur);}
+
+.journey-label{font-size:13px;font-weight:500;color:var(--bur);margin-bottom:10px;}
+.journey-track{display:flex;overflow-x:auto;padding-bottom:4px;}
+.journey-track::-webkit-scrollbar{display:none;}
+.j-step{display:flex;flex-direction:column;align-items:center;min-width:68px;position:relative;}
+.j-step:not(:last-child)::after{content:'';position:absolute;top:14px;left:50%;width:100%;height:2px;background:var(--cream2);}
+.j-step.done::after{background:var(--bur2);}
+.j-dot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(107,26,42,0.15);background:var(--cream2);display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text3);position:relative;z-index:1;}
+.j-step.done .j-dot{background:var(--bur);border-color:var(--bur);color:var(--gold2);}
+.j-step.curr .j-dot{background:var(--gold);border-color:var(--gold3);color:#fff;}
+.j-lbl{font-size:10px;color:var(--text3);text-align:center;margin-top:4px;line-height:1.3;}
+.j-step.done .j-lbl,.j-step.curr .j-lbl{color:var(--bur);}
+
+.assign-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px;}
+.due-pill{font-size:11px;padding:2px 8px;border-radius:20px;background:#FAEEDA;color:#633806;}
+.btn-done{font-size:11px;padding:4px 10px;border-radius:20px;border:none;cursor:pointer;font-family:var(--font-body);}
+.btn-done.todo{background:var(--gold2);color:var(--gold3);}
+.btn-done.did{background:#EAF3DE;color:#3B6D11;}
+
+.admin-block{background:var(--cream2);border-radius:var(--r-lg);padding:12px 14px;border:1px solid rgba(196,154,42,0.3);margin-bottom:8px;}
+.admin-lbl{font-size:10px;font-weight:500;color:var(--gold3);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;}
+.code-row{display:flex;align-items:center;justify-content:space-between;background:var(--white);border-radius:var(--r-md);border:1px solid rgba(196,154,42,0.15);padding:7px 11px;margin-bottom:5px;}
+.code-nm{font-size:13px;color:var(--text);}
+.code-v{font-family:monospace;font-size:12px;color:var(--bur);font-weight:500;}
+.pill{font-size:10px;padding:2px 8px;border-radius:20px;}
+.pill-on{background:#EAF3DE;color:#3B6D11;}
+.pend-item{display:flex;align-items:center;justify-content:space-between;background:var(--white);border-radius:var(--r-md);border:1px solid rgba(196,154,42,0.15);padding:8px 11px;margin-bottom:5px;}
+.pend-actions{display:flex;gap:6px;}
+.btn-appr{font-size:11px;padding:3px 9px;border-radius:20px;background:#EAF3DE;color:#3B6D11;border:none;cursor:pointer;}
+.btn-deny-p{font-size:11px;padding:3px 9px;border-radius:20px;background:#FCEBEB;color:#791F1F;border:none;cursor:pointer;}
+.quote-strip{border-left:3px solid var(--gold);padding:10px 14px;background:var(--cream2);border-radius:0 var(--r-md) var(--r-md) 0;margin-bottom:8px;}
+.quote-text{font-family:var(--font-display);font-size:15px;font-style:italic;color:var(--bur);}
+.quote-attr{font-size:11px;color:var(--text3);margin-top:2px;}
+.help-box{background:var(--bur);border-radius:var(--r-lg);padding:13px 15px;display:flex;gap:11px;}
+.help-ico{width:36px;height:36px;border-radius:50%;background:rgba(196,154,42,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.help-ico i{font-size:18px;color:var(--gold2);}
+.help-title{font-family:var(--font-display);font-size:14px;font-weight:500;color:#FBF5E0;margin-bottom:2px;}
+.help-body{font-size:12px;color:rgba(245,230,184,0.7);line-height:1.6;}
+
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(26,10,14,0.65);align-items:center;justify-content:center;padding:20px;z-index:100;}
+.modal-bg.show{display:flex;}
+.modal{background:var(--white);border-radius:var(--r-xl);border:1px solid rgba(196,154,42,0.3);padding:18px;width:100%;max-width:380px;}
+.modal-title{font-family:var(--font-display);font-size:17px;font-weight:500;color:var(--bur);margin-bottom:12px;}
+.modal input,.modal textarea,.modal select{width:100%;padding:9px 12px;border-radius:var(--r-md);border:1px solid rgba(107,26,42,0.2);background:var(--white);color:var(--text);font-size:13px;margin-bottom:8px;font-family:var(--font-body);outline:none;}
+.modal textarea{resize:vertical;min-height:68px;}
+.modal input[type=date]{color:var(--text);}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;}
+.btn-cancel{padding:7px 14px;border-radius:var(--r-md);border:1px solid rgba(107,26,42,0.2);background:transparent;color:var(--text2);cursor:pointer;font-family:var(--font-body);font-size:13px;}
+.btn-submit{padding:7px 14px;border-radius:var(--r-md);background:var(--bur);color:var(--gold2);border:none;cursor:pointer;font-family:var(--font-display);font-size:14px;font-weight:500;}
+.loading{text-align:center;padding:20px;color:var(--text3);font-size:13px;}
+.empty-state{text-align:center;padding:24px 16px;color:var(--text3);font-size:13px;}
+.empty-state i{font-size:32px;display:block;margin-bottom:8px;color:var(--gold);}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="church-hero">
+    <svg width="100%" height="220" viewBox="0 0 520 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      <rect width="520" height="220" fill="#1A0A0E"/>
+      <rect y="178" width="520" height="42" fill="#0D0408"/>
+      <rect y="172" width="520" height="10" fill="#1A1A0A"/>
+      <rect x="120" y="75" width="280" height="103" fill="#3D1520"/>
+      <rect x="108" y="28" width="70" height="148" fill="#4A1828"/>
+      <ellipse cx="143" cy="28" rx="24" ry="9" fill="#2C1018"/>
+      <rect x="128" y="8" width="30" height="22" fill="#3A1220"/>
+      <rect x="140" y="0" width="4" height="15" fill="#C49A2A"/>
+      <rect x="134" y="5" width="16" height="3" fill="#C49A2A"/>
+      <rect x="342" y="52" width="60" height="123" fill="#4A1828"/>
+      <rect x="350" y="38" width="45" height="18" fill="#3A1220"/>
+      <rect x="369" y="28" width="4" height="13" fill="#C49A2A"/>
+      <rect x="364" y="33" width="14" height="3" fill="#C49A2A"/>
+      <polygon points="195,75 325,75 260,30" fill="#3A1220"/>
+      <rect x="256" y="42" width="8" height="19" fill="#C49A2A" opacity="0.6"/>
+      <circle cx="260" cy="39" r="5" fill="#C49A2A" opacity="0.6"/>
+      <rect x="195" y="132" width="50" height="48" rx="25" fill="#2C1018"/>
+      <rect x="255" y="128" width="52" height="52" rx="26" fill="#1A0A0E"/>
+      <rect x="315" y="132" width="50" height="48" rx="25" fill="#2C1018"/>
+      <rect x="262" y="152" width="18" height="28" rx="2" fill="#4A2020"/>
+      <rect x="282" y="152" width="18" height="28" rx="2" fill="#3A1818"/>
+      <circle cx="260" cy="100" r="15" fill="none" stroke="#C49A2A" stroke-width="1.5" opacity="0.6"/>
+      <circle cx="260" cy="100" r="7" fill="none" stroke="#C49A2A" stroke-width="1" opacity="0.4"/>
+      <rect x="210" y="88" width="20" height="26" rx="10" fill="#1E3A5F" opacity="0.8"/>
+      <rect x="292" y="88" width="20" height="26" rx="10" fill="#5F1E1E" opacity="0.8"/>
+      <rect x="388" y="142" width="95" height="40" rx="4" fill="#3A1220" stroke="#C49A2A" stroke-width="0.5"/>
+      <text x="435" y="158" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="#F5E6B8">St. Catherine</text>
+      <text x="435" y="168" text-anchor="middle" font-family="Georgia,serif" font-size="7" fill="#F5E6B8">of Alexandria</text>
+      <text x="435" y="178" text-anchor="middle" font-family="sans-serif" font-size="6" fill="#C49A2A">CATHOLIC CHURCH</text>
+      <rect x="88" y="150" width="8" height="28" fill="#5A3030" rx="1"/>
+      <ellipse cx="92" cy="147" rx="7" ry="8" fill="#6A4040"/>
+      <rect x="458" y="148" width="5" height="36" fill="#2A1A0A"/>
+      <ellipse cx="460" cy="145" rx="12" ry="7" fill="#1A2A0A" opacity="0.7"/>
+      <rect x="44" y="135" width="6" height="48" fill="#2A1A0A"/>
+      <ellipse cx="47" cy="132" rx="14" ry="9" fill="#1A2A0A" opacity="0.7"/>
+      <rect x="0" y="218" width="520" height="2" fill="#C49A2A"/>
+    </svg>
+    <div class="fade-overlay"></div>
+  </div>
+  <div class="hero-content">
+    <div class="diocese-label">Diocese of San Bernardino</div>
+    <div class="logo-ring"><div class="logo-inner"><div class="logo-ocia">OCIA</div><div class="logo-cross">&#10013;</div></div></div>
+    <div class="parish-name">St. Catherine of Alexandria</div>
+    <div class="ocia-subtitle">Order of Christian Initiation of Adults</div>
+    <div class="parish-address">3680 Arlington Ave &nbsp;&bull;&nbsp; Riverside, CA 92506</div>
+    <div class="parish-quote">"Think about it! Pray about it!"</div>
+  </div>
+  <div class="login-card">
+    <div class="login-heading">Welcome to our OCIA community</div>
+    <div class="login-sub">Sign in to continue your journey of faith</div>
+    <label class="field-label" for="nameIn">Your name</label>
+    <input type="text" id="nameIn" placeholder="First and last name" autocomplete="name">
+    <label class="field-label">Select your role</label>
+    <div class="role-grid">
+      <button type="button" class="role-btn" onclick="selRole('catechumen')" id="r-catechumen"><i class="ti ti-user"></i>Catechumen</button>
+      <button type="button" class="role-btn" onclick="selRole('sponsor')" id="r-sponsor"><i class="ti ti-users"></i>Sponsor</button>
+      <button type="button" class="role-btn" onclick="selRole('team')" id="r-team"><i class="ti ti-star"></i>Team</button>
+      <button type="button" class="role-btn" onclick="selRole('admin')" id="r-admin"><i class="ti ti-shield"></i>Admin</button>
+    </div>
+    <label class="field-label" for="codeIn">Access code</label>
+    <input type="password" id="codeIn" placeholder="Enter your private group code" autocomplete="off">
+    <div class="msg-err" id="errMsg">Incorrect code. Please contact Marcus Jones.</div>
+    <div class="msg-pend" id="pendMsg">Your request has been sent to Marcus Jones for approval.</div>
+    <button type="button" class="btn-enter" onclick="tryLogin()">Enter &rarr;</button>
+    <div class="asl-hint"><i class="ti ti-ear" style="font-size:13px;"></i> ASL &amp; accessibility options available after sign-in</div>
+    <div id="dbStatusBadge" class="db-status db-offline">Connecting to database...</div>
+    <div class="hint">Codes: <strong>CATECHUMEN &nbsp;|&nbsp; SPONSOR &nbsp;|&nbsp; TEAM &nbsp;|&nbsp; ADMIN2026</strong></div>
+  </div>
+</div>
+
+<div id="mainApp">
+  <div class="topbar">
+    <div class="tb-left">
+      <div class="tb-logo"><i class="ti ti-cross"></i></div>
+      <div><div class="tb-name" id="tbName">Member</div><div class="tb-role" id="tbRole">OCIA</div></div>
+    </div>
+    <div class="tb-right">
+      <button type="button" class="tb-btn" onclick="toggleDark()" aria-label="Toggle dark mode"><i class="ti ti-moon" id="darkIco"></i></button>
+      <button type="button" class="tb-btn" onclick="toggleNotif()" aria-label="Notifications" style="position:relative;"><i class="ti ti-bell"></i><span id="notifDot" style="position:absolute;top:2px;right:2px;width:7px;height:7px;background:#E24B4A;border-radius:50%;border:1.5px solid var(--bur);display:none;"></span></button>
+      <button type="button" class="tb-btn" onclick="doLogout()" aria-label="Sign out"><i class="ti ti-logout"></i></button>
+    </div>
+  </div>
+  <div class="notif-drop" id="notifDrop">
+    <div class="notif-title">Notifications</div>
+    <div id="notifList"><div class="loading">Loading...</div></div>
+  </div>
+  <div class="easter-strip">
+    <div class="es-label"><i class="ti ti-flame" style="font-size:13px;color:var(--gold);"></i> Days until Easter Vigil 2026</div>
+    <div class="es-count" id="easterCount">—</div>
+  </div>
+  <div class="nav">
+    <div class="nav-tab on" onclick="goTab(this,'sAnn')" id="tab-ann"><i class="ti ti-speakerphone"></i>Bulletin</div>
+    <div class="nav-tab" onclick="goTab(this,'sPry')" id="tab-pry"><i class="ti ti-heart"></i>Prayer</div>
+    <div class="nav-tab" onclick="goTab(this,'sCal')" id="tab-cal"><i class="ti ti-calendar"></i>Calendar</div>
+    <div class="nav-tab" onclick="goTab(this,'sRes')" id="tab-res"><i class="ti ti-book"></i>Resources</div>
+    <div class="nav-tab" onclick="goTab(this,'sAsgn')" id="tab-asgn"><i class="ti ti-clipboard"></i>Assignments</div>
+    <div class="nav-tab" onclick="goTab(this,'sAdm')" id="tab-adm" style="display:none;"><i class="ti ti-shield"></i>Admin</div>
+  </div>
+
+  <!-- BULLETIN -->
+  <div class="section on" id="sAnn">
+    <div class="sec-hero"><div><div class="sec-hero-title">St. Catherine of Alexandria</div><div class="sec-hero-sub">3680 Arlington Ave &bull; Riverside, CA 92506</div></div></div>
+    <div class="sec-hdr"><div class="sec-title">Bulletin board</div><button type="button" class="btn-add" id="annAddBtn" onclick="openModal('ann')" style="display:none;"><i class="ti ti-plus"></i> Post</button></div>
+    <div id="annList"><div class="loading"><i class="ti ti-loader" style="font-size:20px;"></i> Loading...</div></div>
+  </div>
+
+  <!-- PRAYER -->
+  <div class="section" id="sPry">
+    <div class="sec-hero" style="background:#1A0A0E;">
+      <div style="display:flex;gap:6px;align-items:flex-end;padding:0 12px;">
+        <div style="width:8px;height:30px;background:rgba(245,230,184,0.55);border-radius:2px 2px 0 0;"></div>
+        <div style="width:8px;height:42px;background:rgba(245,230,184,0.75);border-radius:2px 2px 0 0;"></div>
+        <div style="width:8px;height:24px;background:rgba(245,230,184,0.45);border-radius:2px 2px 0 0;"></div>
+        <div style="width:8px;height:36px;background:rgba(245,230,184,0.65);border-radius:2px 2px 0 0;"></div>
+        <div style="width:8px;height:18px;background:rgba(245,230,184,0.35);border-radius:2px 2px 0 0;"></div>
+      </div>
+      <div style="margin-left:12px;"><div class="sec-hero-title">Votive candles</div><div class="sec-hero-sub">St. Catherine of Alexandria</div></div>
+    </div>
+    <div class="sec-hdr"><div class="sec-title">Prayer requests</div><button type="button" class="btn-add" onclick="openModal('pry')"><i class="ti ti-plus"></i> Add</button></div>
+    <div id="pryList"><div class="loading"><i class="ti ti-loader" style="font-size:20px;"></i> Loading...</div></div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="section" id="sCal">
+    <div class="sec-hero"><div><div class="sec-hero-title">OCIA Calendar</div><div class="sec-hero-sub">Sessions &bull; Rites &bull; Feast Days</div></div></div>
+    <div class="sec-hdr"><div class="sec-title">Upcoming events</div><button type="button" class="btn-add" id="calAddBtn" onclick="openModal('cal')" style="display:none;"><i class="ti ti-plus"></i> Add</button></div>
+    <div id="calList"><div class="loading"><i class="ti ti-loader" style="font-size:20px;"></i> Loading...</div></div>
+  </div>
+
+  <!-- RESOURCES -->
+  <div class="section" id="sRes">
+    <div class="sec-hero"><div><div class="sec-hero-title">Study resources</div><div class="sec-hero-sub">Including ASL &amp; accessibility materials</div></div></div>
+    <div class="sec-hdr"><div class="sec-title">Resources</div><button type="button" class="btn-add" id="resAddBtn" onclick="openModal('res')" style="display:none;"><i class="ti ti-plus"></i> Add</button></div>
+    <div class="font-row"><span class="font-lbl"><i class="ti ti-text-size" style="font-size:13px;vertical-align:-2px;"></i> Text size:</span>
+      <button type="button" class="font-sz-btn on" onclick="setFontSize('14px',this)">A</button>
+      <button type="button" class="font-sz-btn" onclick="setFontSize('16px',this)" style="font-size:16px;">A</button>
+      <button type="button" class="font-sz-btn" onclick="setFontSize('19px',this)" style="font-size:19px;">A</button>
+    </div>
+    <div class="card"><div id="resList"><div class="loading"><i class="ti ti-loader" style="font-size:20px;"></i> Loading...</div></div></div>
+  </div>
+
+  <!-- ASSIGNMENTS -->
+  <div class="section" id="sAsgn">
+    <div class="sec-hero" style="background:#1E0E14;"><div><div class="sec-hero-title">Baptismal font</div><div class="sec-hero-sub">Your OCIA journey &bull; St. Catherine of Alexandria</div></div></div>
+    <div class="card" style="padding:14px;"><div class="journey-label">OCIA rites tracker</div><div class="journey-track" id="journeyTrack"></div></div>
+    <div class="sec-hdr"><div class="sec-title">Assignments</div><button type="button" class="btn-add" id="asgnAddBtn" onclick="openModal('asgn')" style="display:none;"><i class="ti ti-plus"></i> Add</button></div>
+    <div id="asgnList"><div class="loading"><i class="ti ti-loader" style="font-size:20px;"></i> Loading...</div></div>
+  </div>
+
+  <!-- ADMIN -->
+  <div class="section" id="sAdm">
+    <div class="sec-title" style="margin-bottom:8px;">Admin &mdash; Marcus Jones</div>
+    <div class="admin-block">
+      <div class="admin-lbl">Access codes</div>
+      <div class="code-row"><span class="code-nm">Catechumens</span><span class="code-v">CATECHUMEN</span><span class="pill pill-on">Active</span></div>
+      <div class="code-row"><span class="code-nm">Sponsors</span><span class="code-v">SPONSOR</span><span class="pill pill-on">Active</span></div>
+      <div class="code-row"><span class="code-nm">Team</span><span class="code-v">TEAM</span><span class="pill pill-on">Active</span></div>
+      <div class="code-row"><span class="code-nm">Admin</span><span class="code-v">ADMIN2026</span><span class="pill pill-on">Active</span></div>
+    </div>
+    <div class="admin-block">
+      <div class="admin-lbl">Pending approvals</div>
+      <div id="pendList"><div class="loading">Loading...</div></div>
+    </div>
+    <div class="admin-block">
+      <div class="admin-lbl">Parish info</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.8;">St. Catherine of Alexandria<br>3680 Arlington Ave, Riverside CA 92506<br>Coordinator: Marcus Jones<br>Feast Day: November 25</div>
+    </div>
+    <div class="quote-strip"><div class="quote-text">"Think about it! Pray about it!"</div><div class="quote-attr">OCIA Ministry &bull; St. Catherine of Alexandria</div></div>
+    <div class="help-box"><div class="help-ico"><i class="ti ti-help-circle"></i></div><div><div class="help-title">Need help?</div><div class="help-body">Contact Marcus Jones, OCIA Coordinator<br>St. Catherine of Alexandria<br>3680 Arlington Ave &bull; Riverside, CA 92506</div></div></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">New post</div>
+    <input type="text" id="mSubj" placeholder="Title">
+    <textarea id="mBody" placeholder="Message..." rows="3"></textarea>
+    <input type="date" id="mDate" style="display:none;">
+    <input type="text" id="mTime" placeholder="Time & location (e.g. 6:30 PM · Parish Hall)" style="display:none;">
+    <div class="modal-foot">
+      <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn-submit" onclick="submitModal()">Post</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const CODES={CATECHUMEN:'catechumen',SPONSOR:'sponsor',TEAM:'team',ADMIN2026:'admin'};
+const PERMS={catechumen:{post:false,prayer:true,res:false,cal:false,asgn:false,admin:false},sponsor:{post:false,prayer:true,res:false,cal:false,asgn:false,admin:false},team:{post:true,prayer:true,res:true,cal:true,asgn:true,admin:false},admin:{post:true,prayer:true,res:true,cal:true,asgn:true,admin:true}};
+let uName='',uRole='',selR='',mType='',isDark=false;
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MOA=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+const journey=[{l:'Inquiry',done:true,curr:false},{l:'Rite of Welcome',done:true,curr:false},{l:'Catechumenate',done:false,curr:true},{l:'Purification',done:false,curr:false},{l:'Easter Vigil',done:false,curr:false},{l:'Mystagogia',done:false,curr:false}];
+let unsubFns=[];
+
+document.addEventListener('firebaseReady',()=>{
+  document.getElementById('dbStatusBadge').className='db-status db-online';
+  document.getElementById('dbStatusBadge').textContent='Connected to live database';
+});
+
+function selRole(r){selR=r;document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));document.getElementById('r-'+r).classList.add('sel');}
+
+function tryLogin(){
+  const n=document.getElementById('nameIn').value.trim();
+  const c=document.getElementById('codeIn').value.trim().toUpperCase();
+  const err=document.getElementById('errMsg');const pend=document.getElementById('pendMsg');
+  err.style.display='none';pend.style.display='none';
+  if(!n){err.style.display='block';err.textContent='Please enter your name.';return;}
+  if(!selR){err.style.display='block';err.textContent='Please select your role.';return;}
+  if(!CODES[c]){
+    if(c.length>=4&&window.firebaseReady){
+      const{collection,addDoc,serverTimestamp}=window.fbFns;
+      addDoc(collection(window.db,'pending'),{name:n,role:selR,requestedAt:serverTimestamp()});
+      pend.style.display='block';
+    }else{err.style.display='block';err.textContent='Incorrect code. Contact Marcus Jones.';}
+    return;
+  }
+  uName=n;uRole=CODES[c];
+  document.getElementById('splash').style.display='none';
+  document.getElementById('mainApp').style.display='flex';
+  document.getElementById('tbName').textContent=n;
+  document.getElementById('tbRole').textContent=uRole.charAt(0).toUpperCase()+uRole.slice(1);
+  const p=PERMS[uRole];
+  if(p.admin)document.getElementById('tab-adm').style.display='flex';
+  if(p.post)document.getElementById('annAddBtn').style.display='flex';
+  if(p.cal)document.getElementById('calAddBtn').style.display='flex';
+  if(p.res)document.getElementById('resAddBtn').style.display='flex';
+  if(p.asgn)document.getElementById('asgnAddBtn').style.display='flex';
+  calcEaster();renderJourney();
+  if(window.firebaseReady)initListeners();
+}
+
+function initListeners(){
+  const{collection,onSnapshot,query,orderBy}=window.fbFns;const db=window.db;
+  unsubFns.forEach(u=>u());unsubFns=[];
+  unsubFns.push(onSnapshot(query(collection(db,'announcements'),orderBy('createdAt','desc')),snap=>{
+    const el=document.getElementById('annList');
+    if(snap.empty){el.innerHTML='<div class="empty-state"><i class="ti ti-speakerphone"></i>No announcements yet.</div>';return;}
+    el.innerHTML=snap.docs.map(d=>{const a=d.data();return`<div class="card"><span class="tag tag-ann">Announcement</span><div class="card-title">${a.title}</div><div class="card-body">${a.body}</div><div class="card-meta"><i class="ti ti-user"></i> ${a.author} &middot; ${a.date}</div></div>`;}).join('');
+  }));
+  unsubFns.push(onSnapshot(query(collection(db,'prayers'),orderBy('createdAt','desc')),snap=>{
+    const el=document.getElementById('pryList');
+    if(snap.empty){el.innerHTML='<div class="empty-state"><i class="ti ti-heart"></i>No prayer requests yet.</div>';return;}
+    el.innerHTML=snap.docs.map(d=>{const p=d.data();const id=d.id;return`<div class="card prayer-accent"><div class="card-title">${p.title}</div><div class="card-body">${p.body}</div><button type="button" class="btn-pray ${p.prayedBy&&p.prayedBy.includes(uName)?'prayed':''}" onclick="togPray('${id}','${p.title}')"><i class="ti ti-heart"></i> <span>${p.ct||0}</span> praying</button><div class="card-meta"><i class="ti ti-user"></i> ${p.author} &middot; ${p.date}</div></div>`;}).join('');
+  }));
+  unsubFns.push(onSnapshot(query(collection(db,'events'),orderBy('sortDate','asc')),snap=>{
+    const el=document.getElementById('calList');
+    if(snap.empty){el.innerHTML='<div class="empty-state"><i class="ti ti-calendar"></i>No events yet.</div>';return;}
+    el.innerHTML=snap.docs.map(d=>{const e=d.data();return`<div class="card ${e.feast?'':''}"><div class="event-row"><div class="event-date" style="${e.feast?'background:var(--gold3);':''}"><div class="event-month">${e.mo}</div><div class="event-day">${e.dy}</div></div><div style="flex:1"><div class="card-title">${e.title}${e.feast?' <span class="tag tag-feast">Feast day</span>':''}</div><div class="card-body">${e.desc}</div><div class="event-time"><i class="ti ti-clock"></i> ${e.time}</div></div></div></div>`;}).join('');
+  }));
+  unsubFns.push(onSnapshot(query(collection(db,'resources'),orderBy('createdAt','asc')),snap=>{
+    const el=document.getElementById('resList');
+    if(snap.empty){el.innerHTML='<div class="empty-state"><i class="ti ti-book"></i>No resources yet.</div>';return;}
+    el.innerHTML=snap.docs.map(d=>{const r=d.data();return`<div class="res-row ${r.asl?'res-asl':''}"><div class="res-icon"><i class="ti ${r.asl?'ti-ear':'ti-file-text'}"></i></div><div style="flex:1"><div style="font-size:13px;font-weight:500;color:var(--text);">${r.title}${r.asl?' <span class="tag tag-asl">ASL</span>':''}</div><div style="font-size:11px;color:var(--text3);">${r.sub}</div></div><button type="button" class="btn-view">View</button></div>`;}).join('');
+  }));
+  unsubFns.push(onSnapshot(query(collection(db,'assignments'),orderBy('createdAt','desc')),snap=>{
+    const el=document.getElementById('asgnList');
+    if(snap.empty){el.innerHTML='<div class="empty-state"><i class="ti ti-clipboard"></i>No assignments yet.</div>';return;}
+    el.innerHTML=snap.docs.map(d=>{const a=d.data();const id=d.id;return`<div class="card" style="${a.done?'opacity:.65':''}"><span class="tag tag-asgn">${a.done?'Completed':'Assignment'}</span><div class="card-title">${a.title}</div><div class="card-body">${a.body}</div><div class="assign-foot"><span class="due-pill">Due ${a.due}</span><button type="button" class="btn-done ${a.done?'did':'todo'}" onclick="togAsgn('${id}',${a.done})">${a.done?'Completed ✓':'Mark done'}</button></div></div>`;}).join('');
+  }));
+  if(PERMS[uRole].admin){
+    unsubFns.push(onSnapshot(query(collection(db,'pending'),orderBy('requestedAt','desc')),snap=>{
+      const el=document.getElementById('pendList');
+      if(snap.empty){el.innerHTML='<div style="font-size:13px;color:var(--text3);padding:6px 0;">No pending requests.</div>';return;}
+      document.getElementById('notifDot').style.display='block';
+      el.innerHTML=snap.docs.map(d=>{const p=d.data();return`<div class="pend-item"><span style="font-size:13px;color:var(--text);">${p.name} &mdash; ${p.role}</span><div class="pend-actions"><button type="button" class="btn-appr" onclick="approvePend('${d.id}')">Approve</button><button type="button" class="btn-deny-p" onclick="denyPend('${d.id}')">Deny</button></div></div>`;}).join('');
+    }));
+  }
+}
+
+async function togPray(id,title){
+  if(!window.firebaseReady)return;
+  const{doc,updateDoc}=window.fbFns;
+  const ref=doc(window.db,'prayers',id);
+  const snap=await window.fbFns.collection;
+  const{getDoc}=await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  const d=await getDoc(ref);
+  if(!d.exists())return;
+  const data=d.data();
+  const prayedBy=data.prayedBy||[];
+  const ct=data.ct||0;
+  if(prayedBy.includes(uName)){await updateDoc(ref,{ct:ct-1,prayedBy:prayedBy.filter(x=>x!==uName)});}
+  else{await updateDoc(ref,{ct:ct+1,prayedBy:[...prayedBy,uName]});}
+}
+
+async function togAsgn(id,done){
+  if(!window.firebaseReady)return;
+  const{doc,updateDoc}=window.fbFns;
+  await updateDoc(doc(window.db,'assignments',id),{done:!done});
+}
+
+async function approvePend(id){
+  if(!window.firebaseReady)return;
+  const{doc,deleteDoc}=window.fbFns;
+  await deleteDoc(doc(window.db,'pending',id));
+}
+async function denyPend(id){
+  if(!window.firebaseReady)return;
+  const{doc,deleteDoc}=window.fbFns;
+  await deleteDoc(doc(window.db,'pending',id));
+}
+
+function doLogout(){
+  uName='';uRole='';selR='';
+  unsubFns.forEach(u=>u());unsubFns=[];
+  document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('sel'));
+  document.getElementById('nameIn').value='';document.getElementById('codeIn').value='';
+  document.getElementById('errMsg').style.display='none';document.getElementById('pendMsg').style.display='none';
+  document.getElementById('splash').style.display='flex';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('tab-adm').style.display='none';
+  ['annAddBtn','calAddBtn','resAddBtn','asgnAddBtn'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  goTab(document.getElementById('tab-ann'),'sAnn');
+}
+
+function goTab(el,id){
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));document.getElementById(id).classList.add('on');
+  document.getElementById('notifDrop').classList.remove('show');
+}
+function toggleDark(){isDark=!isDark;document.documentElement.classList.toggle('dark',isDark);document.getElementById('darkIco').className=isDark?'ti ti-sun':'ti ti-moon';}
+function toggleNotif(){document.getElementById('notifDrop').classList.toggle('show');}
+function calcEaster(){const v=new Date(2026,3,4);const d=Math.ceil((v-new Date())/(864e5));document.getElementById('easterCount').textContent=d>0?d+' days':'Easter Vigil is here!';}
+function renderJourney(){document.getElementById('journeyTrack').innerHTML=journey.map((s,i)=>`<div class="j-step ${s.done?'done':''} ${s.curr?'curr':''}"><div class="j-dot">${s.done?'<i class="ti ti-check" style="font-size:12px;"></i>':s.curr?'<i class="ti ti-flame" style="font-size:12px;"></i>':i+1}</div><div class="j-lbl">${s.l}</div></div>`).join('');}
+function setFontSize(sz,btn){document.getElementById('sRes').style.fontSize=sz;document.querySelectorAll('.font-sz-btn').forEach(b=>b.classList.remove('on'));btn.classList.add('on');}
+
+function openModal(type){
+  mType=type;
+  const T={ann:'New announcement',pry:'New prayer request',cal:'New event',res:'New resource',asgn:'New assignment'};
+  document.getElementById('modalTitle').textContent=T[type];
+  document.getElementById('mSubj').placeholder=type==='cal'?'Event name':'Title';
+  document.getElementById('mBody').placeholder=type==='pry'?'Share your intention...':type==='asgn'?'Assignment details...':'Message...';
+  document.getElementById('mDate').style.display=type==='cal'?'block':'none';
+  document.getElementById('mTime').style.display=type==='cal'?'block':'none';
+  document.getElementById('modalBg').classList.add('show');
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');document.getElementById('mSubj').value='';document.getElementById('mBody').value='';document.getElementById('mDate').value='';document.getElementById('mTime').value='';}
+
+async function submitModal(){
+  if(!window.firebaseReady){alert('Database not connected yet. Please wait a moment and try again.');return;}
+  const title=document.getElementById('mSubj').value.trim();
+  const body=document.getElementById('mBody').value.trim();
+  if(!title||!body)return;
+  const{collection,addDoc,serverTimestamp}=window.fbFns;const db=window.db;
+  const now=new Date();
+  const ds=MO[now.getMonth()]+' '+now.getDate();
+  if(mType==='ann'){await addDoc(collection(db,'announcements'),{title,body,author:uName,date:ds,createdAt:serverTimestamp()});}
+  else if(mType==='pry'){await addDoc(collection(db,'prayers'),{title,body,author:uName,date:ds,ct:0,prayedBy:[],createdAt:serverTimestamp()});}
+  else if(mType==='cal'){
+    const dateVal=document.getElementById('mDate').value;
+    const timeVal=document.getElementById('mTime').value||'See details';
+    let mo='TBD',dy='?',sortDate=0;
+    if(dateVal){const d=new Date(dateVal+'T12:00:00');mo=MOA[d.getMonth()];dy=d.getDate();sortDate=d.getTime();}
+    await addDoc(collection(db,'events'),{title,desc:body,mo,dy,time:timeVal,feast:false,sortDate,createdAt:serverTimestamp()});
+  }
+  else if(mType==='res'){await addDoc(collection(db,'resources'),{title,sub:body,asl:false,createdAt:serverTimestamp()});}
+  else if(mType==='asgn'){
+    const dateVal=document.getElementById('mDate').value;
+    const due=dateVal?new Date(dateVal+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}):'TBD';
+    await addDoc(collection(db,'assignments'),{title,body,due,done:false,createdAt:serverTimestamp()});
+  }
+  closeModal();
+}
+</script>
+</body>
+</html>
 
